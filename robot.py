@@ -36,6 +36,8 @@ class InvertedPendulumEnv(gym.Env):
         self.data.ctrl[:] = action
         mujoco.mj_step(self.model, self.data)
 
+        self._render_viewer_frame()
+
         obs = self._get_obs()
         angle = obs[0]
 
@@ -52,11 +54,20 @@ class InvertedPendulumEnv(gym.Env):
             close = getattr(self.viewer, "close", None)
             if callable(close):
                 close()
+            self.viewer = None
+
+    def render(self):
+        """Render a single frame if rendering is enabled."""
+        self._render_viewer_frame()
 
     def _create_viewer(self):
         """Create a viewer compatible with different MuJoCo distributions."""
-        if hasattr(mujoco, "viewer"):
-            return mujoco.viewer.launch_passive(self.model, self.data)
+        try:
+            from mujoco import viewer as mujoco_viewer_module
+        except ImportError:
+            mujoco_viewer_module = None
+        else:
+            return mujoco_viewer_module.launch_passive(self.model, self.data)
 
         try:
             import mujoco_viewer
@@ -67,4 +78,20 @@ class InvertedPendulumEnv(gym.Env):
             ) from exc
 
         return mujoco_viewer.MujocoViewer(self.model, self.data)
+
+    def _render_viewer_frame(self):
+        if self.viewer is None:
+            return
+
+        sync = getattr(self.viewer, "sync", None)
+        if callable(sync):
+            # New mujoco.viewer API
+            if getattr(self.viewer, "is_running", lambda: True)():
+                sync()
+            else:
+                self.close()
+        else:
+            render = getattr(self.viewer, "render", None)
+            if callable(render):
+                render()
 
