@@ -9,7 +9,7 @@ class InvertedPendulumEnv(gym.Env):
         self.render_mode = render
         self.viewer = None
         if render:
-            self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+            self.viewer = self._create_viewer()
 
         # 观测空间：关节角度、速度
         self.observation_space = gym.spaces.Box(
@@ -49,5 +49,22 @@ class InvertedPendulumEnv(gym.Env):
 
     def close(self):
         if self.viewer is not None:
-            self.viewer.close()
+            close = getattr(self.viewer, "close", None)
+            if callable(close):
+                close()
+
+    def _create_viewer(self):
+        """Create a viewer compatible with different MuJoCo distributions."""
+        if hasattr(mujoco, "viewer"):
+            return mujoco.viewer.launch_passive(self.model, self.data)
+
+        try:
+            import mujoco_viewer
+        except ImportError as exc:  # pragma: no cover - dependent on environment
+            raise RuntimeError(
+                "MuJoCo viewer support is not available. Install `mujoco`>=2.3.4 "
+                "or add the optional `mujoco_viewer` dependency."
+            ) from exc
+
+        return mujoco_viewer.MujocoViewer(self.model, self.data)
 
