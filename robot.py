@@ -55,8 +55,12 @@ class InvertedPendulumEnv(gym.Env):
 
     def _create_viewer(self):
         """Create a viewer compatible with different MuJoCo distributions."""
-        if hasattr(mujoco, "viewer"):
-            return mujoco.viewer.launch_passive(self.model, self.data)
+        try:
+            from mujoco import viewer as mujoco_viewer_module
+        except ImportError:
+            mujoco_viewer_module = None
+        else:
+            return mujoco_viewer_module.launch_passive(self.model, self.data)
 
         try:
             import mujoco_viewer
