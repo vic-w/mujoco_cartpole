@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<robot name="inverted_pendulum">
+
+  <!-- 基座 -->
+  <link name="base">
+    <visual>
+      <geometry>
+        <box size="0.2 0.2 0.05"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.2 0.2 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+    </inertial>
+  </link>
+
+  <!-- 杆子 -->
+  <link name="pole">
+    <visual>
+      <geometry>
+        <cylinder radius="0.02" length="1.0"/>
+      </geometry>
+      <origin xyz="0 0 -0.5"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.02" length="1.0"/>
+      </geometry>
+      <origin xyz="0 0 -0.5"/>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0"/>
+    </inertial>
+  </link>
+
+  <!-- 铰链关节 -->
+  <joint name="hinge" type="revolute">
+    <parent link="base"/>
+    <child link="pole"/>
+    <origin xyz="0 0 0.025"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-3.14" upper="3.14" effort="10.0" velocity="5.0"/>
+  </joint>
+
+</robot>
+
